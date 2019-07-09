@@ -1,5 +1,39 @@
 [
   {
+    "name": "Dolby Vision",
+    "samples": [
+      {
+        "name": "Glass Blowing @59.94fps: Dolby Vision Profile 5 FHD for iOS – Dolby Atmos",
+        "uri": "https://d3rlna7iyyu8wu.cloudfront.net/DolbyVision_Atmos/mp4/iOS_P5_GlassBlowing2_1920x1080%4059.94fps_15200kbps.mp4",
+        "extension": "mp4"
+      },
+      {
+        "name": "Glass Blowing @59.94fps: Dolby Vision Profile 5 UHD for iOS – Dolby Atmos",
+        "uri": "https://d3rlna7iyyu8wu.cloudfront.net/DolbyVision_Atmos/mp4/iOS_P5_GlassBlowing2_3840x2160%4059.94fps_15200kbps.mp4",
+        "extension": "mp4"
+      },
+      {
+        "name": "Glass Blowing @59.94fps: Dolby Vision Profile 8.1 FHD – Dolby Atmos",
+        "uri": "https://d3rlna7iyyu8wu.cloudfront.net/DolbyVision_Atmos/mp4/P81_GlassBlowing2_1920x1080%4059.94fps_15200kbps_fmp4.mp4",
+        "extension": "mp4"
+      },
+      {
+        "name": "Glass Blowing @59.94fps: Dolby Vision Profile 8.1 UHD – Dolby Atmos",
+        "uri": "https://d3rlna7iyyu8wu.cloudfront.net/DolbyVision_Atmos/mp4/P81_GlassBlowing2_3840x2160%4059.94fps_15200kbps_fmp4.mp4",
+        "extension": "mp4"
+      },
+      {
+        "name": "Glass Blowing @59.94fps: Dolby Vision Profile 5 – Dolby Atmos (HLS)",
+        "uri": "https://d3rlna7iyyu8wu.cloudfront.net/DolbyVision_Atmos/profile5_HLS/master.m3u8"
+      },
+      {
+        "name": "Glass Blowing @59.94fps: Dolby Vision Profile 8.1 – Dolby Atmos (MPEG DASH)",
+        "uri": "https://d3rlna7iyyu8wu.cloudfront.net/DolbyVision_Atmos/profile8.1_DASH/p8.1.mpd",
+        "extension": "mpd"
+      }
+    ]
+  },
+  {
     "name": "YouTube DASH",
     "samples": [
       {
