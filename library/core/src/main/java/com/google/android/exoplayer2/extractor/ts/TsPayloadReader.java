@@ -67,6 +67,7 @@ public interface TsPayloadReader {
 
     public final int streamType;
     public final String language;
+    public final Object extraInfo;
     public final List<DvbSubtitleInfo> dvbSubtitleInfos;
     public final byte[] descriptorBytes;
 
@@ -74,13 +75,16 @@ public interface TsPayloadReader {
      * @param streamType The type of the stream as defined by the
      *     {@link TsExtractor}{@code .TS_STREAM_TYPE_*}.
      * @param language The language of the stream, as defined by ISO/IEC 13818-1, section 2.6.18.
+     * @param extraInfo The additional info about the stream
      * @param dvbSubtitleInfos Information about DVB subtitles associated to the stream.
      * @param descriptorBytes The descriptor bytes associated to the stream.
      */
-    public EsInfo(int streamType, String language, List<DvbSubtitleInfo> dvbSubtitleInfos,
+    public EsInfo(int streamType, String language, Object extraInfo,
+        List<DvbSubtitleInfo> dvbSubtitleInfos,
         byte[] descriptorBytes) {
       this.streamType = streamType;
       this.language = language;
+      this.extraInfo = extraInfo;
       this.dvbSubtitleInfos =
           dvbSubtitleInfos == null
               ? Collections.emptyList()

@@ -25,6 +25,7 @@ import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.NalUnitUtil;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.ParsableNalUnitBitArray;
+import com.google.android.exoplayer2.video.DolbyVisionConfig;
 import java.util.Collections;
 
 /**
@@ -68,10 +69,12 @@ public final class H265Reader implements ElementaryStreamReader {
   // Scratch variables to avoid allocations.
   private final ParsableByteArray seiWrapper;
 
+  private final Object extraInfo;
+
   /**
    * @param seiReader An SEI reader for consuming closed caption channels.
    */
-  public H265Reader(SeiReader seiReader) {
+  public H265Reader(SeiReader seiReader, Object extraInfo) {
     this.seiReader = seiReader;
     prefixFlags = new boolean[3];
     vps = new NalUnitTargetBuffer(VPS_NUT, 128);
@@ -80,6 +83,7 @@ public final class H265Reader implements ElementaryStreamReader {
     prefixSei = new NalUnitTargetBuffer(PREFIX_SEI_NUT, 128);
     suffixSei = new NalUnitTargetBuffer(SUFFIX_SEI_NUT, 128);
     seiWrapper = new ParsableByteArray();
+    this.extraInfo = extraInfo;
   }
 
   @Override
@@ -214,8 +218,10 @@ public final class H265Reader implements ElementaryStreamReader {
     }
   }
 
-  private static Format parseMediaFormat(String formatId, NalUnitTargetBuffer vps,
+  private Format parseMediaFormat(String formatId, NalUnitTargetBuffer vps,
       NalUnitTargetBuffer sps, NalUnitTargetBuffer pps) {
+    String mimeType = MimeTypes.VIDEO_H265;
+    String codecs = null;
     // Build codec-specific data.
     byte[] csd = new byte[vps.nalLength + sps.nalLength + pps.nalLength];
     System.arraycopy(vps.nalData, 0, csd, 0, vps.nalLength);
@@ -320,9 +326,30 @@ public final class H265Reader implements ElementaryStreamReader {
       }
     }
 
-    return Format.createVideoSampleFormat(formatId, MimeTypes.VIDEO_H265, null, Format.NO_VALUE,
-        Format.NO_VALUE, picWidthInLumaSamples, picHeightInLumaSamples, Format.NO_VALUE,
-        Collections.singletonList(csd), Format.NO_VALUE, pixelWidthHeightRatio, null);
+    if (extraInfo != null) {
+      if (extraInfo instanceof DolbyVisionConfig) {
+        DolbyVisionConfig dvConfig = (DolbyVisionConfig)(extraInfo);
+        mimeType = MimeTypes.VIDEO_DOLBY_VISION;
+        codecs = dvConfig.codecs;
+      }
+    }
+
+    return Format.createVideoSampleFormat(
+        formatId,
+        mimeType,
+        codecs,
+        Format.NO_VALUE,
+        Format.NO_VALUE,
+        picWidthInLumaSamples,
+        picHeightInLumaSamples,
+        Format.NO_VALUE,
+        Collections.singletonList(csd),
+        Format.NO_VALUE,
+        pixelWidthHeightRatio,
+        null,
+        Format.NO_VALUE,
+        null,
+        null);
   }
 
   /**

@@ -165,7 +165,7 @@ public final class DefaultTsPayloadReaderFactory implements TsPayloadReader.Fact
             : new PesReader(new H264Reader(buildSeiReader(esInfo),
                 isSet(FLAG_ALLOW_NON_IDR_KEYFRAMES), isSet(FLAG_DETECT_ACCESS_UNITS)));
       case TsExtractor.TS_STREAM_TYPE_H265:
-        return new PesReader(new H265Reader(buildSeiReader(esInfo)));
+        return new PesReader(new H265Reader(buildSeiReader(esInfo), esInfo.extraInfo));
       case TsExtractor.TS_STREAM_TYPE_SPLICE_INFO:
         return isSet(FLAG_IGNORE_SPLICE_INFO_STREAM)
             ? null : new SectionReader(new SpliceInfoSectionReader());

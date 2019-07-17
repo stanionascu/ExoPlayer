@@ -39,6 +39,7 @@ import com.google.android.exoplayer2.util.ParsableBitArray;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.DolbyVisionConfig;
 import java.io.IOException;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -91,6 +92,7 @@ public final class TsExtractor implements Extractor {
   public static final int TS_STREAM_TYPE_H262 = 0x02;
   public static final int TS_STREAM_TYPE_H264 = 0x1B;
   public static final int TS_STREAM_TYPE_H265 = 0x24;
+  public static final int TS_STREAM_TYPE_DOVI = 0x06;
   public static final int TS_STREAM_TYPE_ID3 = 0x15;
   public static final int TS_STREAM_TYPE_SPLICE_INFO = 0x86;
   public static final int TS_STREAM_TYPE_DVBSUBS = 0x59;
@@ -105,6 +107,7 @@ public final class TsExtractor implements Extractor {
   private static final long E_AC3_FORMAT_IDENTIFIER = 0x45414333;
   private static final long AC4_FORMAT_IDENTIFIER = 0x41432d34;
   private static final long HEVC_FORMAT_IDENTIFIER = 0x48455643;
+  private static final long DOVI_FORMAT_IDENTIFIER = 0x444F5649;
 
   private static final int BUFFER_SIZE = TS_PACKET_SIZE * 50;
   private static final int SNIFF_TS_PACKET_COUNT = 5;
@@ -498,6 +501,7 @@ public final class TsExtractor implements Extractor {
     private static final int TS_PMT_DESC_DTS = 0x7B;
     private static final int TS_PMT_DESC_DVB_EXT = 0x7F;
     private static final int TS_PMT_DESC_DVBSUBS = 0x59;
+    private static final int TS_PMT_DESC_DOVI = 0xB0;
 
     private static final int TS_PMT_DESC_DVB_EXT_AC4 = 0x15;
 
@@ -561,7 +565,8 @@ public final class TsExtractor implements Extractor {
       if (mode == MODE_HLS && id3Reader == null) {
         // Setup an ID3 track regardless of whether there's a corresponding entry, in case one
         // appears intermittently during playback. See [Internal: b/20261500].
-        EsInfo dummyEsInfo = new EsInfo(TS_STREAM_TYPE_ID3, null, null, Util.EMPTY_BYTE_ARRAY);
+        EsInfo dummyEsInfo = new EsInfo(TS_STREAM_TYPE_ID3, null, null,
+            null, Util.EMPTY_BYTE_ARRAY);
         id3Reader = payloadReaderFactory.createPayloadReader(TS_STREAM_TYPE_ID3, dummyEsInfo);
         id3Reader.init(timestampAdjuster, output,
             new TrackIdGenerator(programNumber, TS_STREAM_TYPE_ID3, MAX_PID_PLUS_ONE));
@@ -642,6 +647,7 @@ public final class TsExtractor implements Extractor {
       int descriptorsEndPosition = descriptorsStartPosition + length;
       int streamType = -1;
       String language = null;
+      Object extraInfo = null;
       List<DvbSubtitleInfo> dvbSubtitleInfos = null;
       while (data.getPosition() < descriptorsEndPosition) {
         int descriptorTag = data.readUnsignedByte();
@@ -657,6 +663,8 @@ public final class TsExtractor implements Extractor {
             streamType = TS_STREAM_TYPE_AC4;
           } else if (formatIdentifier == HEVC_FORMAT_IDENTIFIER) {
             streamType = TS_STREAM_TYPE_H265;
+          } else if (formatIdentifier == DOVI_FORMAT_IDENTIFIER) {
+            streamType = TS_STREAM_TYPE_DOVI;
           }
         } else if (descriptorTag == TS_PMT_DESC_AC3) { // AC-3_descriptor in DVB (ETSI EN 300 468)
           streamType = TS_STREAM_TYPE_AC3;
@@ -685,12 +693,15 @@ public final class TsExtractor implements Extractor {
             dvbSubtitleInfos.add(new DvbSubtitleInfo(dvbLanguage, dvbSubtitlingType,
                 initializationData));
           }
+        } else if (descriptorTag == TS_PMT_DESC_DOVI) {
+          DolbyVisionConfig dvConfig = DolbyVisionConfig.parse(data);
+          extraInfo = dvConfig;
         }
         // Skip unused bytes of current descriptor.
         data.skipBytes(positionOfNextDescriptor - data.getPosition());
       }
       data.setPosition(descriptorsEndPosition);
-      return new EsInfo(streamType, language, dvbSubtitleInfos,
+      return new EsInfo(streamType, language, extraInfo, dvbSubtitleInfos,
           Arrays.copyOfRange(data.data, descriptorsStartPosition, descriptorsEndPosition));
     }
 
