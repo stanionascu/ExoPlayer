@@ -86,7 +86,7 @@ public final class TsExtractorTest {
     FakeExtractorInput input =
         new FakeExtractorInput.Builder()
             .setData(
-                TestUtil.getByteArray(ApplicationProvider.getApplicationContext(), "ts/sample.ts"))
+                TestUtil.getByteArray(ApplicationProvider.getApplicationContext(), "ts/everest.ts"))
             .setSimulateIOErrors(false)
             .setSimulateUnknownLength(false)
             .setSimulatePartialReads(false)
