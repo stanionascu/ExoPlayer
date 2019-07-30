@@ -35,6 +35,8 @@ import com.google.android.exoplayer2.extractor.MpegAudioHeader;
 import com.google.android.exoplayer2.extractor.PositionHolder;
 import com.google.android.exoplayer2.extractor.SeekMap;
 import com.google.android.exoplayer2.extractor.TrackOutput;
+import com.google.android.exoplayer2.extractor.mp4.Mp4Extractor;
+import com.google.android.exoplayer2.extractor.mp4.StsdAtomUtil;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.LongArray;
@@ -105,6 +107,7 @@ public class MatroskaExtractor implements Extractor {
   private static final String CODEC_ID_H265 = "V_MPEGH/ISO/HEVC";
   private static final String CODEC_ID_FOURCC = "V_MS/VFW/FOURCC";
   private static final String CODEC_ID_THEORA = "V_THEORA";
+  private static final String CODEC_ID_QUICKTIME = "V_QUICKTIME";
   private static final String CODEC_ID_VORBIS = "A_VORBIS";
   private static final String CODEC_ID_OPUS = "A_OPUS";
   private static final String CODEC_ID_AAC = "A_AAC";
@@ -1396,7 +1399,8 @@ public class MatroskaExtractor implements Extractor {
     }
     size += sampleStrippedBytes.limit();
 
-    if (CODEC_ID_H264.equals(track.codecId) || CODEC_ID_H265.equals(track.codecId)) {
+    if (CODEC_ID_H264.equals(track.codecId) || CODEC_ID_H265.equals(track.codecId) ||
+          CODEC_ID_QUICKTIME.equals(track.codecId)) {
       // TODO: Deduplicate with Mp4Extractor.
 
       // Zero the top three bytes of the array that we'll use to decode nal unit lengths, in case
@@ -1610,6 +1614,7 @@ public class MatroskaExtractor implements Extractor {
         || CODEC_ID_H265.equals(codecId)
         || CODEC_ID_FOURCC.equals(codecId)
         || CODEC_ID_THEORA.equals(codecId)
+        || CODEC_ID_QUICKTIME.equals(codecId)
         || CODEC_ID_OPUS.equals(codecId)
         || CODEC_ID_VORBIS.equals(codecId)
         || CODEC_ID_AAC.equals(codecId)
@@ -1837,6 +1842,7 @@ public class MatroskaExtractor implements Extractor {
     /** Initializes the track with an output. */
     public void initializeOutput(ExtractorOutput output, int trackId) throws ParserException {
       String mimeType;
+      String codecs = null;
       int maxInputSize = Format.NO_VALUE;
       @C.PcmEncoding int pcmEncoding = Format.NO_VALUE;
       List<byte[]> initializationData = null;
@@ -1881,6 +1887,13 @@ public class MatroskaExtractor implements Extractor {
           // TODO: This can be set to the real mimeType if/when we work out what initializationData
           // should be set to for this case.
           mimeType = MimeTypes.VIDEO_UNKNOWN;
+          break;
+        case CODEC_ID_QUICKTIME:
+          Pair<String, Pair<String, List<byte[]>>> movPair = StsdAtomUtil.parse(
+              new ParsableByteArray(codecPrivate), trackId, language, drmInitData, true);
+          mimeType = movPair.first;
+          codecs = movPair.second.first;
+          initializationData = movPair.second.second;
           break;
         case CODEC_ID_VORBIS:
           mimeType = MimeTypes.AUDIO_VORBIS;
@@ -2035,7 +2048,7 @@ public class MatroskaExtractor implements Extractor {
             Format.createVideoSampleFormat(
                 Integer.toString(trackId),
                 mimeType,
-                /* codecs= */ null,
+                /* codecs= */ codecs,
                 /* bitrate= */ Format.NO_VALUE,
                 maxInputSize,
                 width,

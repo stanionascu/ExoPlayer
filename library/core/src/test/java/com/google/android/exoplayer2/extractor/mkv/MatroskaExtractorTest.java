@@ -26,7 +26,7 @@ public final class MatroskaExtractorTest {
 
   @Test
   public void testMkvSample() throws Exception {
-    ExtractorAsserts.assertBehavior(MatroskaExtractor::new, "mkv/sample.mkv");
+    ExtractorAsserts.assertBehavior(MatroskaExtractor::new, "mkv/dovi_sample.mkv");
   }
 
   @Test
